@@ -1,0 +1,179 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage[table]{xcolor}
+\usepackage[spanish]{babel}
+
+% Page margins
+\geometry{a4paper, margin=1in}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textit{Proyecto Corto 2}}
+\fancyhead[R]{\textit{\today}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Date format for entries
+\usepackage{datetime}
+\newdateformat{logdate}{\twodigit{\THEDAY}~\shortmonthname~\THEYEAR}
+
+% Custom section for log entries
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {Entry \#\thesection:}
+  {0.5em}
+  {}
+
+% Entry counter
+\newcounter{entrycount}
+\setcounter{entrycount}{0}
+
+% New log entry command
+\newcommand{\logentry}[3]{%
+  \refstepcounter{entrycount}%
+  \section*{Bitácora \#\theentrycount: #1}%
+  \hfill\textit{#2}\\[0.2cm]
+  #3
+  \vspace{0.5cm}
+  \hrule
+  \vspace{0.5cm}
+}
+
+\begin{document}
+
+% Title
+\begin{center}
+    {\huge \textbf{Bitácora}}\\[0.3cm]
+    {\large \textbf{Proyecto:}} Diseño digital sincrónico en HDL\\[0.2cm]
+    {\large \textbf{Repositorio:}} \texttt{https://github.com/jwoc101/Proyecto\_2-Grupo\_5}\\[0.2cm]
+    {\large \textbf{Estudiante:}} Julián Murillo Wo Ching\\[0.2cm]
+    {\large \textbf{Carné:}} 2024096679\\[0.2cm]
+\end{center}
+
+\vspace{1cm}
+\hrule
+\vspace{0.5cm}
+
+
+\logentry{}{21 de abril}{
+    
+	    \textbf{Delineación de Subsistemas:}
+    	\begin{itemize}
+    	\item \underline{Subsistema de lectura de teclado hexadecimal}: Toma un teclado mecánico hexadecimal como el método de entrada de datos para el sistema. La entrada se debe sincronizar y ser leída por el FPGA de manera clara y consistente. La entrada es de dos números en hexadecimal.  
+    	\item \underline{Subsistema de suma aritmética}: Utiliza los dos números de entrada para ejecutar una suma aritmética.
+    	\item \underline{Subsistema de despliegue}: Se utilizan 4 displays de 7 segmentos, o bien un display de 4 dígitos, para mostar el resultado de la suma aritmética. Conlleva un sistema de refresco para mánejar las terminales que los displays comparten. Se utilizará como señal de reloj el pin de 27 MHz de la TangNano9k.
+    	\end{itemize}
+    	
+    	\vspace{1cm}
+    	
+    	\textbf{Siguientes Pasos: Subsistema de lectura de teclado} 
+    	\begin{itemize}
+    	\item Obtener teclado mecánico hexadecimal.
+		\item Obtener displays de 7 segmentos.    	
+    	\item Averiguar configuración de teclado (si posee resistencias push-pull, cómo maneja la salida de datos, su alambrado).
+    	\item Alambrar y configurar subsistema de lectura de teclado. Determinar en que base se guardarán las entradas para la suma, así como el método para decidir cómo guardar las dos entradas así como cómo ejecutar la suma
+    	\item Llevar a cabo pruebas preliminares con LEDs integrados a la FPGA como salida.
+    	\end{itemize}
+    	
+    
+}
+
+\logentry{}{25 de abril}{
+
+	Pareja posee FPGA esta semana. Se delimitan nuevos objetivos ante la situación.
+	
+	\vspace{0.5cm}	
+	
+	\textbf{Siguientes Pasos: Subsistema de suma y despliegue} 
+	\begin{itemize}
+    	\item Programar subsitema de suma aritmética
+    	\item Programar subsistema de despliegue
+	\end{itemize}
+	
+	\vspace{0.5cm}
+	
+	\textbf{Sesión de investigación: }
+	
+	\begin{itemize}
+		\item Efecto de rebote al ingresar datos y su prevención [1]
+		\item Máquinas de estado [2]
+		\item Mecanismos de refrescamiento en FPGA para despliegue de múltiples displays [2]
+	\end{itemize}
+
+	\vspace{0.5cm}
+	
+	\textbf{Recursos Relevantes:}
+	\begin{itemize}
+		\item \underline{FPGA Button Debouncer Module:} https://github.com/njmarencik/debouncer
+		\item \underline{FPGA Digital Debounce Filter:} https://forums.ni.com/t5/Example-Code/FPGA-Digital-Debounce-Filter-Reference-Example/ta-p/3996138
+	\end{itemize}
+}
+
+\logentry{}{28 de abril}{
+
+	\textbf{Módulos preliminares}
+	
+	\begin{itemize}
+		\item \underline{Módulo de suma:} \texttt{sumador.sv}
+		\item \underline{Módulo de despliegue:} \texttt{display.sv}
+		\item \underline{Módulo top:} \texttt{calcu.sv}
+	\end{itemize}
+	
+	\vspace{0.5cm}
+	
+	\textbf{Siguientes Pasos:}
+	\begin{itemize}
+		\item Esperar a recibir módulo del teclado y FPGA alambrado
+		\item Unir las dos mitades del sistema
+	\end{itemize}
+
+}
+
+
+	\begin{thebibliography}{99}
+	\bibitem{GfG}
+	“Switch Debounce in Digital Circuits,” GeeksforGeeks. [En línea]. Disponible: https://www.geeksforgeeks.org/digital-logic/switch-debounce-in-digital-circuits/. [Accesado: Apr. 25, 2026]
+	\bibitem{lameres2024}
+	B. J. LaMeres, \textit{Quick Start Guide to Verilog}, 2nd ed., Cham, Switzerland: Springer, 2024.
+	\end{thebibliography}
+	
+	
+	
+% ------------------------------------------------------------
+% Copy this block for each new log entry
+% ------------------------------------------------------------
+% \logentry{[Entry Title]}{
+%     \textbf{Date:} \logdate\today\\
+%     \textbf{Time Spent:} [duration]\\
+%     \textbf{Category:} [type]\\
+%     
+%     \textbf{What I did:}
+%     \begin{itemize}
+%         \item [task 1]
+%         \item [task 2]
+%     \end{itemize}
+%     
+%     \textbf{Observations/Notes:}
+%     \begin{itemize}
+%         \item [observation 1]
+%         \item [observation 2]
+%     \end{itemize}
+%     
+%     \textbf{Next Steps:}
+%     \begin{enumerate}
+%         \item [next action 1]
+%         \item [next action 2]
+%     \end{itemize}
+% }
+% ------------------------------------------------------------
+
+\end{document}
