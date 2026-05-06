@@ -1,93 +1,80 @@
 module display (
-    input logic clk,           // internal clock
-    input logic reset,
+    input  logic clk,           // Reloj interno 27MHz
+    input  logic reset,         // Botón de reset
 
-    input logic [3:0] key,
-    input logic valid,
+    // Nuevas entradas: los 4 valores hexadecimales a mostrar
+    input  logic [3:0] disp0,   // Dígito de la derecha (posición 0)
+    input  logic [3:0] disp1,   // Posición 1
+    input  logic [3:0] disp2,   // Posición 2
+    input  logic [3:0] disp3,   // Dígito de la izquierda (posición 3)
 
-    output logic [3:0] lit_digit, //Un 1 para encender el digito [izquierda:derecha]
-    output logic [6:0] lit_segs, //gfedcba, tiene logica invertida, 0 para encender el segmento
-
+    output logic [3:0] lit_digit, // Ánodos/Cátodos comunes
+    output logic [6:0] lit_segs   // Segmentos gfedcba (lógica inversa)
 );
 
-logic rst;
-assign rst = ~reset;
- 
-    // ============================================================
-    // Clock divider for scanning, nueva frecuencia es de ~=3kHz
-    // ============================================================
+    logic rst;
+    assign rst = ~reset;
 
-    logic [13:0] scan_cnt; //la frecuencia con la que cambia scan_tick dependerá de este tamaño de scan_cnt
-    wire scan_tick = (scan_cnt == 0); //scan_tick es 1 cada vez que scan_cnt llega a 0
+    // 1. Divisor de reloj para el refresco (multiplexación)
+    // Reducimos la frecuencia para que el ojo humano no note el parpadeo
+    logic [13:0] scan_cnt;
+    wire scan_tick = (scan_cnt == 0);
 
-    always @(posedge clk or posedge rst) begin //mecanismo de reset
-        if (rst)
-            scan_cnt <= 0;
-        else
-            scan_cnt <= scan_cnt + 1;
+    always @(posedge clk or posedge rst) begin
+        if (rst) scan_cnt <= 0;
+        else     scan_cnt <= scan_cnt + 1;
     end
 
-    // ============================================================
-    // Digit sequence: enciende los digitos uno por uno
-    // ============================================================
+    // 2. Secuencia de escaneo: Enciende un dígito a la vez
     logic [1:0] cycled_digit;
-
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             cycled_digit <= 2'd0;
-            lit_digit <= 4'b1111;
-           // lit_segs <= 7'b0111111; //modificar para encender segmento G
+            lit_digit <= 4'b0000;
         end else if (scan_tick) begin
-            cycled_digit = cycled_digit + 1;
+            cycled_digit <= cycled_digit + 1;
             case (cycled_digit)
-                2'd0: lit_digit <= 4'b0001;
-                2'd1: lit_digit <= 4'b0010;
-                2'd2: lit_digit <= 4'b0100;
-                2'd3: lit_digit <= 4'b1000;
+                2'd0: lit_digit <= 4'b0001; // Activa dígito 0
+                2'd1: lit_digit <= 4'b0010; // Activa dígito 1
+                2'd2: lit_digit <= 4'b0100; // Activa dígito 2
+                2'd3: lit_digit <= 4'b1000; // Activa dígito 3
             endcase
         end
     end
 
-    // ============================================================
-    // Estado del display
-    // ============================================================
-    localparam IDLE = 2'd0;
-    localparam NUM_A = 2'd1;
-    localparam NUM_B = 2'd2;
-    localparam SUM_C = 2'd3;
-    logic [3:0] current_digit;
-
-    logic [1:0] state;
-
-        always @(*) begin
-
+    // 3. Mux de datos: Selecciona qué valor enviar al decodificador
+    logic [3:0] current_hex_val;
+    always @(*) begin
         case (cycled_digit)
-            2'd0: current_digit = 4'd3;
-            2'd1: current_digit = 4'd2;
-            2'd2: current_digit = 4'd7;
-            2'd3: current_digit = 4'd5;
-
+            2'd0: current_hex_val = disp0;
+            2'd1: current_hex_val = disp1;
+            2'd2: current_hex_val = disp2;
+            2'd3: current_hex_val = disp3;
+            default: current_hex_val = 4'h0;
         endcase
     end
 
-    // ============================================================
-    // Tabla de verdad para display
-    // ============================================================
-
-
+    // 4. Decodificador de 7 Segmentos (Tabla de verdad)
+    // Usamos la lógica de tu compañero: gfedcba (0 enciende)
     always @(*) begin
-        case (current_digit) //gfedcba
-            4'd0: lit_segs = 7'b1000000;  // 0
-            4'd1: lit_segs = 7'b1111001;  // 1
-            4'd2: lit_segs = 7'b0100100;  // 2
-            4'd3: lit_segs = 7'b0110000;  // 3
-            4'd4: lit_segs = 7'b0011001;  // 4
-            4'd5: lit_segs = 7'b0010010;  // 5
-            4'd6: lit_segs = 7'b0000010;  // 6
-            4'd7: lit_segs = 7'b1111000;  // 7
-            4'd8: lit_segs = 7'b0000000;  // 8
-            4'd9: lit_segs = 7'b0010000;  // 9
-            default: lit_segs = 7'b1111111;
+        case (current_hex_val)
+            4'h0: lit_segs = 7'b1000000; 
+            4'h1: lit_segs = 7'b1111001;
+            4'h2: lit_segs = 7'b0100100;
+            4'h3: lit_segs = 7'b0110000;
+            4'h4: lit_segs = 7'b0011001;
+            4'h5: lit_segs = 7'b0010010;
+            4'h6: lit_segs = 7'b0000010;
+            4'h7: lit_segs = 7'b1111000;
+            4'h8: lit_segs = 7'b0000000;
+            4'h9: lit_segs = 7'b0010000;
+            4'hA: lit_segs = 7'b0001000;
+            4'hB: lit_segs = 7'b0000011;
+            4'hC: lit_segs = 7'b1000110;
+            4'hD: lit_segs = 7'b0100001;
+            4'hE: lit_segs = 7'b0000110;
+            4'hF: lit_segs = 7'b0001110;
+            default: lit_segs = 7'b1111111; // Todo apagado
         endcase
     end
 

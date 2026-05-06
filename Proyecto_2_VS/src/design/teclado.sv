@@ -2,65 +2,55 @@ module teclado (
     input logic clk,        // 27 MHz
     input logic rst,
 
-    output logic [3:0] row, //pins izquierdos visto desde arriba
-    input logic [3:0] col, //pins derechos
+    output logic [3:0] row, // pines izquierdos visto desde arriba
+    input logic [3:0] col,  // pines derechos
 
     output logic [3:0] key,
     output logic valid
 );
 
-
-
     // ============================================================
     // Parameters
     // ============================================================
-    parameter SCAN_DIV = 15000;     // ~1.8 kHz scan rate (27e6 / 15000)
-    parameter DEBOUNCE_TIME = 270000; // ~10 ms (27e6 * 0.01)
+    parameter SCAN_DIV = 15000;
+    parameter DEBOUNCE_TIME = 270000;
 
     // ============================================================
-    // Clock divider for scanning, nueva frecuencia es de ~=3kHz
+    // Clock divider for scanning
     // ============================================================
+    logic [15:0] scan_cnt; 
+    wire scan_tick = (scan_cnt >= SCAN_DIV); 
 
-    logic [13:0] scan_cnt; //la frecuencia con la que cambia scan_tick dependerá de este tamaño de scan_cnt
-    wire scan_tick = (scan_cnt == 0); //scan_tick es 1 cada vez que scan_cnt llega a 0
-
-    always @(posedge clk or posedge rst) begin //mecanismo de reset
+    always @(posedge clk or posedge rst) begin 
         if (rst)
+            scan_cnt <= 0;
+        else if (scan_tick)
             scan_cnt <= 0;
         else
             scan_cnt <= scan_cnt + 1;
     end
 
     // ============================================================
-    // Row scanner: hace update cada scan_tick o reset
+    // Declaración de la Máquina de Estados
+    // ============================================================
+    localparam IDLE      = 2'd0;
+    localparam DEBOUNCE  = 2'd1;
+    localparam PRESSED   = 2'd2;
+
+    logic [1:0] state;
+    logic [31:0] debounce_cnt;
+    logic [3:0] stable_key;
+
+    // ============================================================
+    // Detección de tecla cruda (Lógica Combinacional)
     // ============================================================
     logic [1:0] scanned_row;
-
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            scanned_row <= 0;
-            row <= 4'b0001;
-        end else if (scan_tick) begin
-            scanned_row <= scanned_row + 1;
-            case (scanned_row)
-                2'd0: row <= 4'b0001;
-                2'd1: row <= 4'b0010;
-                2'd2: row <= 4'b0100;
-                2'd3: row <= 4'b1000;
-            endcase
-        end
-    end
-
-    // ============================================================
-    // Raw key detection
-    // ============================================================
     logic [3:0] raw_key;
     logic raw_pressed;
 
     always @(*) begin
         raw_pressed = 0;
         raw_key = 4'h0;
-
         case (scanned_row)
             2'd0: if (col != 4'b0000) begin
                 raw_pressed = 1;
@@ -105,16 +95,34 @@ module teclado (
     end
 
     // ============================================================
-    // Debounce FSM
+    // Row scanner (Escáner de Filas)
     // ============================================================
-    localparam IDLE      = 2'd0;
-    localparam DEBOUNCE  = 2'd1;
-    localparam PRESSED   = 2'd2;
+    // 1. Lógica Secuencial: Congela el escáner si hay algo presionado
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            scanned_row <= 0;
+        end else if (scan_tick) begin
+            // Solo avanza a la siguiente fila si está libre y no se presiona nada
+            if (state == IDLE && raw_pressed == 1'b0) begin
+                scanned_row <= scanned_row + 1;
+            end
+        end
+    end
 
-    logic [1:0] state;
-    logic [31:0] debounce_cnt;
-    logic [3:0] stable_key;
+    // 2. Lógica Combinacional: Salida física inmediata a los pines
+    always @(*) begin
+        case (scanned_row)
+            2'd0: row = 4'b0001;
+            2'd1: row = 4'b0010;
+            2'd2: row = 4'b0100;
+            2'd3: row = 4'b1000;
+            default: row = 4'b0000;
+        endcase
+    end
 
+    // ============================================================
+    // Máquina de Estados para Anti-rebote
+    // ============================================================
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
@@ -123,12 +131,7 @@ module teclado (
             key <= 0;
         end else begin
             valid <= 0;
-
             case (state)
-
-                // ----------------------------
-                // Wait for key press
-                // ----------------------------
                 IDLE: begin
                     if (raw_pressed) begin
                         stable_key <= raw_key;
@@ -137,33 +140,28 @@ module teclado (
                     end
                 end
 
-                // ----------------------------
-                // Debounce press
-                // ----------------------------
                 DEBOUNCE: begin
                     if (raw_pressed && raw_key == stable_key) begin
                         if (debounce_cnt >= DEBOUNCE_TIME) begin
                             key <= stable_key;
-                            valid <= 1;   // one pulse
+                            valid <= 1;   // Envía un único pulso válido
                             state <= PRESSED;
                         end else begin
                             debounce_cnt <= debounce_cnt + 1;
                         end
                     end else begin
-                        state <= IDLE; // bounce or change → reset
+                        state <= IDLE; // Fue un ruido/rebote falso
                     end
                 end
 
-                // ----------------------------
-                // Wait for release
-                // ----------------------------
                 PRESSED: begin
+                    // Espera aquí eternamente (con el escáner congelado) 
+                    // hasta que se suelte la tecla.
                     if (!raw_pressed) begin
                         debounce_cnt <= 0;
                         state <= IDLE;
                     end
                 end
-
             endcase
         end
     end
