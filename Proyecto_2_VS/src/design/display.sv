@@ -1,19 +1,25 @@
 module display (
     input  logic clk,           // Reloj interno 27MHz
-    input  logic reset,         // Botón de reset
+    input  logic rst,         // Botón de reset
 
-    // Nuevas entradas: los 4 valores hexadecimales a mostrar
-    input  logic [3:0] disp0,   // Dígito de la derecha (posición 0)
-    input  logic [3:0] disp1,   // Posición 1
-    input  logic [3:0] disp2,   // Posición 2
-    input  logic [3:0] disp3,   // Dígito de la izquierda (posición 3)
+    input logic [15:0] num_in,
 
-    output logic [3:0] lit_digit, // Ánodos/Cátodos comunes
+    output logic [3:0] lit_digit, // Ánodo comun
     output logic [6:0] lit_segs   // Segmentos gfedcba (lógica inversa)
 );
 
-    logic rst;
-    assign rst = ~reset;
+
+    // Nuevas entradas: los 4 valores segsadecimales a mostrar
+    logic [3:0] disp0_value;   // Dígito de la derecha (posición 0)
+    logic [3:0] disp1_value;   // Posición 1
+    logic [3:0] disp2_value;   // Posición 2
+    logic [3:0] disp3_value;   // Dígito de la izquierda (posición 3)
+
+
+    assign disp0_value = num_in[3:0];
+    assign disp1_value = num_in[7:4];
+    assign disp2_value = num_in[11:8];
+    assign disp3_value = num_in[15:12];
 
     // 1. Divisor de reloj para el refresco (multiplexación)
     // Reducimos la frecuencia para que el ojo humano no note el parpadeo
@@ -25,7 +31,7 @@ module display (
         else     scan_cnt <= scan_cnt + 1;
     end
 
-    // 2. Secuencia de escaneo: Enciende un dígito a la vez
+    // 4Enciende un dígito a la vez
     logic [1:0] cycled_digit;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -43,21 +49,22 @@ module display (
     end
 
     // 3. Mux de datos: Selecciona qué valor enviar al decodificador
-    logic [3:0] current_hex_val;
+    logic [3:0] segs_conf;
     always @(*) begin
         case (cycled_digit)
-            2'd0: current_hex_val = disp0;
-            2'd1: current_hex_val = disp1;
-            2'd2: current_hex_val = disp2;
-            2'd3: current_hex_val = disp3;
-            default: current_hex_val = 4'h0;
+            2'd0: segs_conf = disp3_value;
+            2'd1: segs_conf = disp0_value;
+            2'd2: segs_conf = disp1_value;
+            2'd3: segs_conf = disp2_value;
+            default: segs_conf = 4'h0;
         endcase
     end
 
+
     // 4. Decodificador de 7 Segmentos (Tabla de verdad)
-    // Usamos la lógica de tu compañero: gfedcba (0 enciende)
+    //  gfedcba (0 enciende)
     always @(*) begin
-        case (current_hex_val)
+        case (segs_conf)
             4'h0: lit_segs = 7'b1000000; 
             4'h1: lit_segs = 7'b1111001;
             4'h2: lit_segs = 7'b0100100;
@@ -77,5 +84,9 @@ module display (
             default: lit_segs = 7'b1111111; // Todo apagado
         endcase
     end
+
+
+
+
 
 endmodule

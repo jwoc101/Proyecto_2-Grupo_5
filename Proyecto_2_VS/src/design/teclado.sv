@@ -5,7 +5,7 @@ module teclado (
     output logic [3:0] row, // pines izquierdos visto desde arriba
     input logic [3:0] col,  // pines derechos
 
-    output logic [3:0] key,
+    output logic [3:0] key_out,
     output logic valid
 );
 
@@ -128,7 +128,7 @@ module teclado (
             state <= IDLE;
             debounce_cnt <= 0;
             valid <= 0;
-            key <= 0;
+            key_out <= 0;
         end else begin
             valid <= 0;
             case (state)
@@ -143,7 +143,7 @@ module teclado (
                 DEBOUNCE: begin
                     if (raw_pressed && raw_key == stable_key) begin
                         if (debounce_cnt >= DEBOUNCE_TIME) begin
-                            key <= stable_key;
+                            key_out <= stable_key;
                             valid <= 1;   // Envía un único pulso válido
                             state <= PRESSED;
                         end else begin
@@ -162,6 +162,7 @@ module teclado (
                         state <= IDLE;
                     end
                 end
+                default: state = IDLE;
             endcase
         end
     end
