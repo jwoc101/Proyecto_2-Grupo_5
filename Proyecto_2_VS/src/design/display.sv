@@ -44,6 +44,7 @@ module display (
                 2'd1: lit_digit <= 4'b0010; // Activa dígito 1
                 2'd2: lit_digit <= 4'b0100; // Activa dígito 2
                 2'd3: lit_digit <= 4'b1000; // Activa dígito 3
+                default: lit_digit <= 4'b0000;
             endcase
         end
     end
@@ -64,7 +65,7 @@ module display (
     // 4. Decodificador de 7 Segmentos (Tabla de verdad)
     //  gfedcba (0 enciende)
     always @(*) begin
-        case (segs_conf)
+        unique case (segs_conf)
             4'h0: lit_segs = 7'b1000000; 
             4'h1: lit_segs = 7'b1111001;
             4'h2: lit_segs = 7'b0100100;
@@ -79,7 +80,7 @@ module display (
             4'hB: lit_segs = 7'b0000011;
             4'hC: lit_segs = 7'b1000110;
             4'hD: lit_segs = 7'b0100001;
-            4'hE: lit_segs = 7'b0000110;
+            4'hE: lit_segs = 7'b0000110; 
             4'hF: lit_segs = 7'b0001110;
             default: lit_segs = 7'b1111111; // Todo apagado
         endcase

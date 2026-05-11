@@ -49,8 +49,6 @@ module top (
 
         .num_out(num_value),
 
-
-
     );
     // ============================================================
     // Instancia del display
