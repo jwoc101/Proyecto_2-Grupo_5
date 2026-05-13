@@ -28,7 +28,7 @@ El diseño de sistemas digitales modernos exige la integración de periféricos 
 El sistema opera mediante el flujo de datos desde el teclado hacia una FSM central. El módulo `teclado.sv` escanea constantemente las filas; al detectar una pulsación, el `debouncer` valida la señal. El módulo `sumador.sv` recibe la tecla y, según el estado actual (captura de primer número o segundo), desplaza los dígitos en registros internos. Una vez completada la entrada, se realiza la suma BCD y el resultado se envía al módulo `display.sv`, que se encarga de activar secuencialmente cada display para mostrar el valor final.
 
 ## 4. Diagramas de Bloques de Subsistemas
-![Diagrama de bloques]
+![Diagrama de bloques](<Imagenes/Diagrama de bloques.jpg>)
 
 ## 5. Diagramas de Estado de las FSM
 
