@@ -47,7 +47,7 @@ module top (
         .key_in(key_value),
         .valid(key_valid),
 
-        .num_out(num_value),
+        .num_out(num_value)
 
     );
     // ============================================================

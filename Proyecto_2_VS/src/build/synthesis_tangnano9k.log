@@ -2061,6 +2061,6 @@ Found and reported 0 problems.
 
 6.30. Executing JSON backend.
 
-End of script. Logfile hash: ba56e68db9, CPU: user 0.62s system 0.01s, MEM: 62.39 MB peak
+End of script. Logfile hash: ba56e68db9, CPU: user 0.85s system 0.03s, MEM: 62.50 MB peak
 Yosys 0.26+1 (git sha1 b1a011138, clang 10.0.0-4ubuntu1 -fPIC -Os)
-Time spent: 25% 4x techmap (0 sec), 15% 1x abc (0 sec), ...
+Time spent: 25% 4x techmap (0 sec), 17% 1x abc (0 sec), ...
