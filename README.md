@@ -125,7 +125,7 @@ Se utilizó una compuerta 74HC00 con el alambrado visto en el diagrama [1] para 
 
 ![S alta y R alta](<Ejercicio 2/p6.2/scope_4.png>)
 
-
+Tabla de verdad utilizada
 
  |   $S$        |    $R$         |         $Q_{n+1}$           |
 |--------------------|--------------------|--------------------|
@@ -134,3 +134,6 @@ Se utilizó una compuerta 74HC00 con el alambrado visto en el diagrama [1] para 
 |      1              |          0          |          1          |
 |         1           |          1          |         Indeterminado    |
 
+## Referencias
+
+R. Das, “Clocked SR Flip Flop: Complete Guide with Circuit, Truth Table, and Working,” Circuit Digest, Jul. 22, 2025. [En línea]. Disponible: https://circuitdigest.com/electronic-circuits/clocked-sr-flip-flop-truth-table-circuit-diagram-working
