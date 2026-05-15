@@ -95,3 +95,42 @@ Para validar el sistema, se analizó el trayecto de una operación ejemplo: **12
 ---
 
 ## Resultados de Laboratorio (Ejercicio 2)
+
+### Ejercicio 1: Contador sincrónico
+Para la sección de los ejercicios, al necesitar dos contadores sincrónicos 74LS163, se trabajó en conjunto con otra pareja. Se utilizó el módulo clock_ej2.sv para generar una señal de reloj de 1,93 MHz, la más cercana posible a la frecuencia especificada de 1,84 MHz. Se conectaron ambos contadores en cascodo, con el pin RCO del primero  conectado al pin T del segundo. De esta manera, se utiliza el segundo contador para contar las veces que la cuenta del primero reinicia. Se utiliza el pin T, y no el P, porque es el único que produce una salida en RCO. Sin embargo, sigue siendo importante mantener ambos pines P en alto, ya que solo así se habilita el conteo. 
+
+![Señales Q y Clk](<Ejercicio 2/p6.1/p2_4.png>)
+
+La salida RCO emite un pulso cada vez que la cuenta del 74LS163 se reinicia. Este modulo tiene una cuenta con 4 bits, por lo que tiene 16 estados, y RCO emite su pulso una vez que se pase por todos. En la captura de pantalla también se pueden apreciar las señales de los pines $Q_0$, $Q_1$, $Q_2$ y $Q_3$, las cuales son equivalentes a la frecuencia del reloj dividida entre 2, 4, 8, y 16, respectivamente. 
+
+![Diferencia entre disparos](<Ejercicio 2/p6.1/p2_6.png>)
+
+En esta imagen se puede ver la medición del tiempo de respuesta entre el disparo del reloj y una de las salidas del contador, aproximadamente 20 ns. Según las especificaciones del fabricante, este tiempo de respuesta no es el mismo para todas las salidas. Las salidas mayores, como $Q_3$, esperan a que las salidas menores, como $Q_0$, se disparen, por lo que tardan más. 
+
+![Falla en RCO](<Ejercicio 2/p6.1/p2_16.png>)
+
+Finalmente, se observó la salida del pin RCO del segundo contador para mostrar su posible falla. Usualmente, si este pin se deja como flotante, esta falla sería irrelevante. Sin embargo, en casos donde se le proporcione una carga, o algún otro camino a tierra, se vería este pulso.
+
+
+### Ejercicio 2:  SR-Latch con compuertas NAND
+
+![SR Latch con NANDs](https://circuitdigest.com/sites/default/files/inlineimages/u5/Circuit-Truth-Table-NAND.png)
+
+Se utilizó una compuerta 74HC00 con el alambrado visto en el diagrama [1] para crear un SR Latch. Nuevamente, se utilizó la misma señal de reloj clk de la FPGA. Las entradas S y R fueron conectadas en alto con un DIP switch que permitía abrir un camino a tierra y ponerlas en bajo. En las siguientes capturas de pantalla se puede ver la señal que emite Q (canal $D_1$), QN (canal $D_2$), y el reloj. La primera imagen tiene S en alta y R en baja, la segunda S en baja y R en alta, y la tercera tiene ambos en alto. Circuitos como este se pueden utilizar como partes de mecanismos de condificación, memoria, o debouncing.
+
+
+![S alta y R baja](<Ejercicio 2/p6.2/scope_0.png>)
+
+![S baja y R alta](<Ejercicio 2/p6.2/scope_2.png>)
+
+![S alta y R alta](<Ejercicio 2/p6.2/scope_4.png>)
+
+
+
+ |   $S$        |    $R$         |         $Q_{n+1}$           |
+|--------------------|--------------------|--------------------|
+|            0        |       0             |          $Q_n$          |
+|          0          |          1          |           0         |
+|      1              |          0          |          1          |
+|         1           |          1          |         Indeterminado    |
+
